@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Kiosk Perkhidmatan</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBQp3ZT3No_nkBLPgMKhHjQZ2YkbRq9-mg",
+  authDomain: "queue-system-c4615.firebaseapp.com",
+  databaseURL: "https://queue-system-c4615-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "queue-system-c4615"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function createQueue(type) {
+  let num = type + Math.floor(Math.random() * 900 + 100);
+
+  db.ref("queues/" + num).set({
+    number: num,
+    status: "waiting",
+    stage: "service",
+    service: type,
+    counter: null,
+    timestamp: Date.now()
+  });
+
+  document.getElementById("latest").innerText = num;
+}
+</script>
+
+</head>
+
+<body class="kiosk-page">
+
+<header>
+  <div class="brand">
+    <img src="image/images.png" alt="Logo Pejabat Agama Islam Daerah Rompin">
+    <div class="brand-text">
+      <h1>Pejabat Agama Islam Daerah Rompin</h1>
+      <p class="brand-jawi">&#1700;&#1580;&#1575;&#1576;&#1578; &#1575;&#1890;&#1575;&#1605; &#1575;&#1587;&#1604;&#1575;&#1605; &#1583;&#1575;&#1569;&#1610;&#1585;&#1607; &#1585;&#1608;&#1605;&#1700;&#1610;&#1606;</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrapper">
+
+  <div class="left">
+    <h2>Pilih Perkhidmatan</h2>
+
+    <div class="grid">
+      <button class="card-btn" onclick="createQueue('K')">
+        <span class="service-icon">01</span>
+        <span class="service-copy">
+          <span class="service-name">Pendaftaran Perkahwinan</span>
+          <span class="service-jawi" lang="ar" dir="rtl">&#1700;&#1606;&#1583;&#1601;&#1578;&#1585;&#1606; &#1700;&#1585;&#1705;&#1607;&#1608;&#1610;&#1606;&#1606;</span>
+        </span>
+      </button>
+      <button class="card-btn" onclick="createQueue('F')">
+        <span class="service-icon">02</span>
+        <span class="service-copy">
+          <span class="service-name">Pembangunan Keluarga</span>
+          <span class="service-jawi" lang="ar" dir="rtl">&#1700;&#1605;&#1576;&#1575;&#1696;&#1608;&#1606;&#1606; &#1705;&#1604;&#1608;&#1575;&#1585;&#1890;</span>
+        </span>
+      </button>
+      <button class="card-btn" onclick="createQueue('M')">
+        <span class="service-icon">03</span>
+        <span class="service-copy">
+          <span class="service-name">Masjid & Surau</span>
+          <span class="service-jawi" lang="ar" dir="rtl">&#1605;&#1587;&#1580;&#1583; &#1583;&#1575;&#1606; &#1587;&#1608;&#1585;&#1575;&#1608;</span>
+        </span>
+      </button>
+      <button class="card-btn" onclick="createQueue('D')">
+        <span class="service-icon">04</span>
+        <span class="service-copy">
+          <span class="service-name">Dakwah</span>
+          <span class="service-jawi" lang="ar" dir="rtl">&#1583;&#1593;&#1608;&#1607;</span>
+        </span>
+      </button>
+      <button class="card-btn" onclick="createQueue('L')">
+        <span class="service-icon">05</span>
+        <span class="service-copy">
+          <span class="service-name">Lain-lain</span>
+          <span class="service-jawi" lang="ar" dir="rtl">&#1604;&#1575;&#1569;&#1610;&#1606;-&#1604;&#1575;&#1569;&#1610;&#1606;</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="right">
+
+    <div class="queue-box">
+      <h2>Nombor Giliran Terkini</h2>
+      <div class="queue-number" id="latest">---</div>
+    </div>
+
+    <div class="info">
+      <h3>Maklumat</h3>
+      <p>
+        Sila pilih perkhidmatan yang dikehendaki.<br>
+        Ambil nombor giliran dan tunggu panggilan di skrin utama.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  &copy; 2026 Pejabat Agama Islam Daerah Rompin. Hak Cipta Terpelihara.
+</footer>
+
+</body>
+</html>

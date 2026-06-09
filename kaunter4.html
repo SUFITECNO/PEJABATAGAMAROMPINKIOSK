@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaunter 4 – Pembayaran</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<style>
+  /* ── KAUNTER 4 BADGE ── */
+  .k4-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(90deg, var(--gold-600), #b8890f);
+    color: white;
+    font-size: 13px; font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    letter-spacing: .04em;
+  }
+  .k4-dot {
+    width: 8px; height: 8px;
+    background: white; border-radius: 50%;
+    animation: pulse-dot .9s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.4; transform:scale(.6); }
+  }
+
+  /* ── BUTTONS ── */
+  .staff-page .actions {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  }
+  .staff-page .actions button {
+    border: none;
+    padding: 9px 14px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer; font-weight: 700; font-size: 13px;
+    min-width: 100px; text-align: center;
+    transition: opacity .15s, transform .12s;
+  }
+  .staff-page .actions button:active   { transform: scale(.95); }
+  .staff-page .actions button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+
+  .staff-page .done { background: var(--danger); }
+  .staff-page .call {
+    background: var(--green-700);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .icon-speaker { width:16px; height:16px; fill:white; flex-shrink:0; }
+
+  /* ── Local card highlight when Panggil is pressed ── */
+  .queue-card.calling {
+    border-left-color: var(--gold-600) !important;
+    background: #fffbe6;
+  }
+
+  .badge.payment { background: #edf0ff; color: #33418f; }
+
+  .queue-summary {
+    display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .summary-chip {
+    background: white;
+    border: 1px solid rgba(17,116,71,.15);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 13px; font-weight: 600;
+    color: var(--green-900);
+    box-shadow: 0 2px 8px rgba(7,63,42,.07);
+  }
+  .summary-chip span { color: var(--gold-600); }
+
+  .grid-header {
+    display: grid;
+    grid-template-columns: 130px 1fr 120px 220px;
+    gap: 10px;
+    padding: 8px 14px;
+    font-size: 11px; font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 2px solid rgba(17,116,71,.08);
+    margin-bottom: 4px;
+  }
+  @media (max-width: 900px) { .grid-header { display: none; } }
+
+  .k4-grid .queue-card {
+    grid-template-columns: 130px 1fr 120px 220px;
+  }
+</style>
+</head>
+
+<body class="staff-page">
+
+<header>
+  <div class="brand">
+    <img src="image/images.png" alt="Logo Pejabat Agama Islam Daerah Rompin">
+    <div class="brand-text">
+      <h3>Pejabat Agama Islam Daerah Rompin</h3>
+      <p class="brand-jawi">&#1700;&#1580;&#1575;&#1576;&#1578; &#1575;&#1890;&#1575;&#1605; &#1575;&#1587;&#1604;&#1575;&#1605; &#1583;&#1575;&#1569;&#1610;&#1585;&#1607; &#1585;&#1608;&#1605;&#1700;&#1610;&#1606;</p>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="k4-badge">
+    <span class="k4-dot"></span>
+    KAUNTER 4 — PEMBAYARAN
+  </div>
+
+  <div class="queue-summary" id="summary"></div>
+
+  <div class="grid-header">
+    <div>No. Giliran</div>
+    <div>Status</div>
+    <div>Masa</div>
+    <div>Tindakan</div>
+  </div>
+
+  <div class="queue-grid k4-grid" id="queueTable"></div>
+
+</div>
+
+<footer>
+  &copy; 2026 Pejabat Agama Islam Daerah Rompin
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   FIREBASE
+═══════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBQp3ZT3No_nkBLPgMKhHjQZ2YkbRq9-mg",
+  authDomain: "queue-system-c4615.firebaseapp.com",
+  databaseURL: "https://queue-system-c4615-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "queue-system-c4615",
+  storageBucket: "queue-system-c4615.firebasestorage.app",
+  messagingSenderId: "291773115991",
+  appId: "1:291773115991:web:f98c7d8c54993f2fc5bd12"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* NOTE: Voice/speech is handled ONLY by tv.html.
+   Kaunter 4 sets called:true in Firebase to trigger TV to announce.
+   Kaunter 4 does NOT speak itself. */
+
+let prevState = {};
+let paymentAssigning = false;
+
+const speakerIcon = `<svg class="icon-speaker" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+</svg>`;
+
+function displayValue(value, fallback = "-") {
+  return value === undefined || value === null || value === "" ? fallback : value;
+}
+
+function isValidPaymentQueue(d) {
+  return !!d &&
+    d.stage === "payment" &&
+    ["waiting", "serving"].includes(d.status) &&
+    typeof d.number === "string" &&
+    /^[KFMDL]\d{3}$/.test(d.number);
+}
+
+/* ═══════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════ */
+function renderQueue(snap) {
+  const container = document.getElementById("queueTable");
+  const summary   = document.getElementById("summary");
+  container.innerHTML = "";
+
+  let queues = [];
+  snap.forEach(child => {
+    const d = child.val();
+    if (!isValidPaymentQueue(d)) return;
+    queues.push({ key: child.key, ...d });
+  });
+
+  queues.sort((a, b) => a.timestamp - b.timestamp);
+
+  const currentPayment = queues.filter(q => q.status === "serving").length;
+  const waitingPayment = queues.filter(q => q.status === "waiting").length;
+
+  summary.innerHTML = `
+    <div class="summary-chip">Sedang Bayar: <span>${currentPayment}</span></div>
+    <div class="summary-chip">Menunggu Bayaran: <span>${waitingPayment}</span></div>
+  `;
+
+  queues.forEach(d => {
+    const key  = d.key;
+    const prev = prevState[key];
+    const isServing   = d.status === "serving";
+    const queueNumber = displayValue(d.number);
+
+    /* ── AUTO-CALL LOGIC ──
+       When payment entry first enters serving and hasn't been auto-called,
+       set called:true so TV announces it. TV resets called:false when done.
+    */
+    const justArrived = isServing && !d.autoCalled && (!prev || prev.status !== "serving");
+
+    if (justArrived) {
+      db.ref("queues/" + key).update({ autoCalled: true, called: true });
+    }
+
+    prevState[key] = { seen: true, status: d.status, autoCalled: !!d.autoCalled };
+
+    container.innerHTML += `
+      <div class="queue-card" id="card-${key}">
+
+        <div class="queue-no">
+          ${queueNumber}
+          <div class="small">Kaunter 4</div>
+        </div>
+
+        <div>
+          <span class="badge payment">${isServing ? "Pembayaran" : "Menunggu Bayaran"}</span>
+        </div>
+
+        <div class="small">
+          ${d.timestamp ? new Date(d.timestamp).toLocaleTimeString("ms-MY") : "-"}
+        </div>
+
+        <div class="actions">
+          <button class="done" onclick="doneQueue('${key}')" ${isServing ? "" : "disabled"}>SELESAI</button>
+          <button class="call" onclick="manualCall('${key}')" ${isServing ? "" : "disabled"}>
+            ${speakerIcon} PANGGIL
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
+
+  // Clean up prevState
+  Object.keys(prevState).forEach(k => {
+    if (!queues.find(q => q.key === k)) delete prevState[k];
+  });
+
+  if (queues.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;font-size:15px;">Tiada giliran pembayaran</div>`;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   MANUAL CALL — sets called:true in Firebase
+   TV will detect and announce, then reset to false
+═══════════════════════════════════════════ */
+function manualCall(key) {
+  // Brief highlight on the card
+  const card = document.getElementById("card-" + key);
+  if (card) {
+    card.classList.add("calling");
+    setTimeout(() => card.classList.remove("calling"), 3000);
+  }
+  // Tell TV to announce
+  db.ref("queues/" + key).update({ called: true });
+}
+
+/* ═══════════════════════════════════════════
+   DONE + AUTO-ASSIGN
+═══════════════════════════════════════════ */
+function autoAssignPaymentQueue() {
+  if (paymentAssigning) return;
+  paymentAssigning = true;
+
+  db.ref("queues").once("value", queueSnap => {
+    let waiting = [];
+    let hasServingPayment = false;
+    queueSnap.forEach(child => {
+      const d = child.val();
+      if (isValidPaymentQueue(d) && d.status === "serving") hasServingPayment = true;
+      if (isValidPaymentQueue(d) && d.status === "waiting") {
+        waiting.push({ key: child.key, ...d });
+      }
+    });
+
+    waiting.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+    if (!hasServingPayment && waiting.length > 0) {
+      const next = waiting[0];
+      db.ref("counters/4").set({ status:"busy", current:next.key, lastFree:Date.now() });
+      db.ref("queues/" + next.key).update({
+        status:"serving", counter:4, called:false, autoCalled:false
+      });
+    }
+
+    paymentAssigning = false;
+  });
+}
+
+function doneQueue(key) {
+  db.ref("queues/" + key).remove();
+  db.ref("counters/4").update({ status:"free", current:null, lastFree:Date.now() });
+}
+
+/* ═══════════════════════════════════════════
+   LISTENERS
+═══════════════════════════════════════════ */
+db.ref("queues").on("value", snap => {
+  renderQueue(snap);
+  autoAssignPaymentQueue();
+});
+
+db.ref("counters/4").on("value", () => autoAssignPaymentQueue());
+</script>
+
+</body>
+</html>
