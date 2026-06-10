@@ -38,22 +38,23 @@ function printReceipt(number, type) {
   };
   const serviceName = serviceNames[type] || "";
 
-  const printWindow = window.open('', '_blank', 'width=240,height=520');
-
-  printWindow.document.write(`<!DOCTYPE html>
+  /* ── SILENT IFRAME PRINT ──────────────────────────────────────────
+     Injects a hidden iframe directly into this page and prints it.
+     Chrome will NOT show a popup-blocker warning because no new window
+     is opened — the iframe lives inside the same document origin.
+     After printing, the iframe is removed automatically.
+  ──────────────────────────────────────────────────────────────── */
+  const receiptHTML = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>Nombor Giliran</title>
   <style>
-    /* POS-58 thermal: 58mm roll, ~48mm printable */
     @page {
       size: 58mm auto;
       margin: 0;
     }
-
     * { box-sizing: border-box; }
-
     body {
       width: 48mm;
       margin: 0 auto;
@@ -64,14 +65,12 @@ function printReceipt(number, type) {
       color: #000;
       background: #fff;
     }
-
     .org-name {
       font-size: 12px;
       font-weight: bold;
       line-height: 1.4;
       margin-bottom: 2px;
     }
-
     .org-jawi {
       font-size: 13px;
       font-weight: bold;
@@ -80,13 +79,11 @@ function printReceipt(number, type) {
       line-height: 1.5;
       margin-bottom: 1px;
     }
-
     hr {
       border: none;
       border-top: 1px dashed #000;
       margin: 5px 0;
     }
-
     .label {
       font-size: 10px;
       letter-spacing: 0.06em;
@@ -94,7 +91,6 @@ function printReceipt(number, type) {
       color: #333;
       margin-bottom: 2px;
     }
-
     .queue-number {
       font-size: 42px;
       font-weight: 900;
@@ -102,30 +98,25 @@ function printReceipt(number, type) {
       letter-spacing: 0.04em;
       margin: 6px 0 4px;
     }
-
     .service-name {
       font-size: 11px;
       font-weight: bold;
       margin-bottom: 6px;
     }
-
     .message {
       font-size: 10px;
       line-height: 1.5;
       margin: 4px 0;
     }
-
     .datetime-label {
       font-size: 10px;
       color: #444;
       margin-bottom: 1px;
     }
-
     .datetime-value {
       font-size: 11px;
       font-weight: bold;
     }
-
     .thanks {
       font-size: 10px;
       margin-top: 4px;
@@ -133,34 +124,46 @@ function printReceipt(number, type) {
     }
   </style>
 </head>
-<body onload="window.print(); window.close();">
-
+<body>
   <div class="org-name">Pejabat Agama Islam<br>Daerah Rompin</div>
   <div class="org-jawi">&#1700;&#1580;&#1575;&#1576;&#1578; &#1575;&#1620;&#1575;&#1605;&#1577; &#1575;&#1587;&#1604;&#1575;&#1605; &#1583;&#1575;&#1574;&#1585;&#1607; &#1585;&#1608;&#1605;&#1576;&#1610;&#1606;</div>
-
   <hr>
-
   <div class="label">NOMBOR GILIRAN</div>
   <div class="queue-number">${number}</div>
   <div class="service-name">${serviceName}</div>
-
   <hr>
-
   <div class="message">Sila duduk.<br>Anda akan dilayan sebentar lagi.</div>
-
   <hr>
-
   <div class="datetime-label">Tarikh &amp; Masa</div>
   <div class="datetime-value">${dateTime}</div>
-
   <hr>
-
   <div class="thanks">Terima kasih</div>
-
 </body>
-</html>`);
+</html>`;
 
-  printWindow.document.close();
+  /* Create a hidden iframe, write the receipt into it, then print */
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;visibility:hidden;';
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iframeDoc.open();
+  iframeDoc.write(receiptHTML);
+  iframeDoc.close();
+
+  /* Wait for iframe content to fully load before printing */
+  iframe.onload = function () {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error('Print error:', e);
+    }
+    /* Remove the iframe after a short delay to allow print to spool */
+    setTimeout(function () {
+      document.body.removeChild(iframe);
+    }, 2000);
+  };
 }
 
 function createQueue(type) {
