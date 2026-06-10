@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="firebase-config.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -21,6 +20,7 @@ const db = firebase.database();
 function printReceipt(number, type) {
   const now = new Date();
 
+  /* Date format: 10/6/2026 @13:26 */
   const dateTime =
     now.getDate() + "/" +
     (now.getMonth() + 1) + "/" +
@@ -28,74 +28,137 @@ function printReceipt(number, type) {
     now.getHours().toString().padStart(2, '0') + ":" +
     now.getMinutes().toString().padStart(2, '0');
 
-  const printWindow = window.open('', '', 'width=300,height=600');
+  /* Service name map */
+  const serviceNames = {
+    K: "Pendaftaran Perkahwinan",
+    F: "Pembangunan Keluarga",
+    M: "Masjid & Surau",
+    D: "Dakwah",
+    L: "Lain-lain"
+  };
+  const serviceName = serviceNames[type] || "";
 
-  printWindow.document.write(`
-    <html>
-    <head>
-      <title>Receipt</title>
-      <style>
-        @page {
-          size: 80mm auto;
-          margin: 0;
-        }
+  const printWindow = window.open('', '_blank', 'width=240,height=520');
 
-        body {
-          width: 72mm;
-          margin: 0;
-          padding: 6px;
-          font-family: Arial, sans-serif;
-          text-align: center;
-        }
+  printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Nombor Giliran</title>
+  <style>
+    /* POS-58 thermal: 58mm roll, ~48mm printable */
+    @page {
+      size: 58mm auto;
+      margin: 0;
+    }
 
-        .bold { font-weight: bold; }
-        .big { font-size: 22px; font-weight: bold; margin: 10px 0; }
-        .small { font-size: 12px; }
+    * { box-sizing: border-box; }
 
-        hr {
-          border: none;
-          border-top: 1px dashed #000;
-          margin: 8px 0;
-        }
+    body {
+      width: 48mm;
+      margin: 0 auto;
+      padding: 4mm 0 6mm;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      text-align: center;
+      color: #000;
+      background: #fff;
+    }
 
-        .jawi {
-          font-family: Arial;
-          direction: rtl;
-        }
-      </style>
-    </head>
+    .org-name {
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1.4;
+      margin-bottom: 2px;
+    }
 
-    <body onload="window.print(); window.close();">
+    .org-jawi {
+      font-size: 13px;
+      font-weight: bold;
+      direction: rtl;
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+      margin-bottom: 1px;
+    }
 
-      <div class="bold">Pejabat Agama Islam Daerah Rompin</div>
+    hr {
+      border: none;
+      border-top: 1px dashed #000;
+      margin: 5px 0;
+    }
 
-      <div class="jawi small">
-        &#1700;&#1580;&#1575;&#1576;&#1578; &#1575;&#1890;&#1575;&#1605; &#1575;&#1587;&#1604;&#1575;&#1605; &#1583;&#1575;&#1569;&#1610;&#1585;&#1607; &#1585;&#1608;&#1605;&#1700;&#1610;&#1606;
-      </div>
+    .label {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #333;
+      margin-bottom: 2px;
+    }
 
-      <hr>
+    .queue-number {
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      margin: 6px 0 4px;
+    }
 
-      <div class="small">NOMBOR GILIRAN</div>
-      <div class="big">${number}</div>
+    .service-name {
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
 
-      <div class="small">
-        Sila duduk. Anda akan dilayan sebentar lagi.
-      </div>
+    .message {
+      font-size: 10px;
+      line-height: 1.5;
+      margin: 4px 0;
+    }
 
-      <hr>
+    .datetime-label {
+      font-size: 10px;
+      color: #444;
+      margin-bottom: 1px;
+    }
 
-      <div class="small">
-        Tarikh & Masa:<br>
-        ${dateTime}
-      </div>
+    .datetime-value {
+      font-size: 11px;
+      font-weight: bold;
+    }
 
-      <hr>
+    .thanks {
+      font-size: 10px;
+      margin-top: 4px;
+      color: #333;
+    }
+  </style>
+</head>
+<body onload="window.print(); window.close();">
 
-      <div class="small">Terima kasih</div>
+  <div class="org-name">Pejabat Agama Islam<br>Daerah Rompin</div>
+  <div class="org-jawi">&#1700;&#1580;&#1575;&#1576;&#1578; &#1575;&#1620;&#1575;&#1605;&#1577; &#1575;&#1587;&#1604;&#1575;&#1605; &#1583;&#1575;&#1574;&#1585;&#1607; &#1585;&#1608;&#1605;&#1576;&#1610;&#1606;</div>
 
-    </body>
-    </html>
-  `);
+  <hr>
+
+  <div class="label">NOMBOR GILIRAN</div>
+  <div class="queue-number">${number}</div>
+  <div class="service-name">${serviceName}</div>
+
+  <hr>
+
+  <div class="message">Sila duduk.<br>Anda akan dilayan sebentar lagi.</div>
+
+  <hr>
+
+  <div class="datetime-label">Tarikh &amp; Masa</div>
+  <div class="datetime-value">${dateTime}</div>
+
+  <hr>
+
+  <div class="thanks">Terima kasih</div>
+
+</body>
+</html>`);
 
   printWindow.document.close();
 }
