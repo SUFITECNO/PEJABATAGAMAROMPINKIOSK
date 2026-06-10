@@ -7,6 +7,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -139,16 +140,7 @@
 /* ═══════════════════════════════════════════
    FIREBASE
 ═══════════════════════════════════════════ */
-const firebaseConfig = {
-  apiKey: "AIzaSyBQp3ZT3No_nkBLPgMKhHjQZ2YkbRq9-mg",
-  authDomain: "queue-system-c4615.firebaseapp.com",
-  databaseURL: "https://queue-system-c4615-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "queue-system-c4615",
-  storageBucket: "queue-system-c4615.firebasestorage.app",
-  messagingSenderId: "291773115991",
-  appId: "1:291773115991:web:f98c7d8c54993f2fc5bd12"
-};
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(window.FIREBASE_CONFIG);
 const db = firebase.database();
 
 /* NOTE: Voice/speech is handled ONLY by tv.html.
