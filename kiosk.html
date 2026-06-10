@@ -18,6 +18,88 @@
 firebase.initializeApp(window.FIREBASE_CONFIG);
 const db = firebase.database();
 
+function printReceipt(number, type) {
+  const now = new Date();
+
+  const dateTime =
+    now.getDate() + "/" +
+    (now.getMonth() + 1) + "/" +
+    now.getFullYear() + " @" +
+    now.getHours().toString().padStart(2, '0') + ":" +
+    now.getMinutes().toString().padStart(2, '0');
+
+  const printWindow = window.open('', '', 'width=300,height=600');
+
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>Receipt</title>
+      <style>
+        @page {
+          size: 80mm auto;
+          margin: 0;
+        }
+
+        body {
+          width: 72mm;
+          margin: 0;
+          padding: 6px;
+          font-family: Arial, sans-serif;
+          text-align: center;
+        }
+
+        .bold { font-weight: bold; }
+        .big { font-size: 22px; font-weight: bold; margin: 10px 0; }
+        .small { font-size: 12px; }
+
+        hr {
+          border: none;
+          border-top: 1px dashed #000;
+          margin: 8px 0;
+        }
+
+        .jawi {
+          font-family: Arial;
+          direction: rtl;
+        }
+      </style>
+    </head>
+
+    <body onload="window.print(); window.close();">
+
+      <div class="bold">Pejabat Agama Islam Daerah Rompin</div>
+
+      <div class="jawi small">
+        &#1700;&#1580;&#1575;&#1576;&#1578; &#1575;&#1890;&#1575;&#1605; &#1575;&#1587;&#1604;&#1575;&#1605; &#1583;&#1575;&#1569;&#1610;&#1585;&#1607; &#1585;&#1608;&#1605;&#1700;&#1610;&#1606;
+      </div>
+
+      <hr>
+
+      <div class="small">NOMBOR GILIRAN</div>
+      <div class="big">${number}</div>
+
+      <div class="small">
+        Sila duduk. Anda akan dilayan sebentar lagi.
+      </div>
+
+      <hr>
+
+      <div class="small">
+        Tarikh & Masa:<br>
+        ${dateTime}
+      </div>
+
+      <hr>
+
+      <div class="small">Terima kasih</div>
+
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+}
+
 function createQueue(type) {
   let num = type + Math.floor(Math.random() * 900 + 100);
 
@@ -31,6 +113,9 @@ function createQueue(type) {
   });
 
   document.getElementById("latest").innerText = num;
+
+  // 🖨️ AUTO PRINT CALL
+  printReceipt(num, type);
 }
 </script>
 
@@ -61,6 +146,7 @@ function createQueue(type) {
           <span class="service-jawi" lang="ar" dir="rtl">&#1700;&#1606;&#1583;&#1601;&#1578;&#1585;&#1606; &#1700;&#1585;&#1705;&#1607;&#1608;&#1610;&#1606;&#1606;</span>
         </span>
       </button>
+
       <button class="card-btn" onclick="createQueue('F')">
         <span class="service-icon">02</span>
         <span class="service-copy">
@@ -68,6 +154,7 @@ function createQueue(type) {
           <span class="service-jawi" lang="ar" dir="rtl">&#1700;&#1605;&#1576;&#1575;&#1696;&#1608;&#1606;&#1606; &#1705;&#1604;&#1608;&#1575;&#1585;&#1890;</span>
         </span>
       </button>
+
       <button class="card-btn" onclick="createQueue('M')">
         <span class="service-icon">03</span>
         <span class="service-copy">
@@ -75,6 +162,7 @@ function createQueue(type) {
           <span class="service-jawi" lang="ar" dir="rtl">&#1605;&#1587;&#1580;&#1583; &#1583;&#1575;&#1606; &#1587;&#1608;&#1585;&#1575;&#1608;</span>
         </span>
       </button>
+
       <button class="card-btn" onclick="createQueue('D')">
         <span class="service-icon">04</span>
         <span class="service-copy">
@@ -82,6 +170,7 @@ function createQueue(type) {
           <span class="service-jawi" lang="ar" dir="rtl">&#1583;&#1593;&#1608;&#1607;</span>
         </span>
       </button>
+
       <button class="card-btn" onclick="createQueue('L')">
         <span class="service-icon">05</span>
         <span class="service-copy">
