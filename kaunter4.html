@@ -55,9 +55,49 @@
   .staff-page .done { background: var(--danger); }
   .staff-page .call {
     background: var(--green-700);
-    display: flex; align-items: center; justify-content: center; gap: 5px;
+    display: flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px;
+    min-width: 42px;
+    padding: 0;
+    border-radius: 50%;
   }
-  .icon-speaker { width:16px; height:16px; fill:white; flex-shrink:0; }
+  .staff-page .call:hover:not(:disabled) {
+    background: var(--green-800);
+    transform: scale(1.08);
+  }
+  .icon-speaker { width:18px; height:18px; fill:white; flex-shrink:0; }
+
+  /* ── TOP ROW: badge + back-to-staff link ── */
+  .k4-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .k4-top-row .k4-badge { margin-bottom: 0; }
+
+  .back-to-staff {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1px solid rgba(17, 116, 71, .2);
+    color: var(--green-800);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 999px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(7, 63, 42, .08);
+    transition: background .15s, color .15s, transform .12s;
+  }
+  .back-to-staff:hover {
+    background: var(--green-700);
+    color: white;
+    transform: translateY(-1px);
+  }
 
   /* ── Local card highlight when Panggil is pressed ── */
   .queue-card.calling {
@@ -114,9 +154,12 @@
 
 <div class="container">
 
-  <div class="k4-badge">
-    <span class="k4-dot"></span>
-    KAUNTER 4 — PEMBAYARAN
+  <div class="k4-top-row">
+    <div class="k4-badge">
+      <span class="k4-dot"></span>
+      KAUNTER 4 — PEMBAYARAN
+    </div>
+    <a href="staff.html" class="back-to-staff">&larr; Panel Staff</a>
   </div>
 
   <div class="queue-summary" id="summary"></div>
@@ -227,8 +270,8 @@ function renderQueue(snap) {
 
         <div class="actions">
           <button class="done" onclick="doneQueue('${key}')" ${isServing ? "" : "disabled"}>SELESAI</button>
-          <button class="call" onclick="manualCall('${key}')" ${isServing ? "" : "disabled"}>
-            ${speakerIcon} PANGGIL
+          <button class="call" onclick="manualCall('${key}')" ${isServing ? "" : "disabled"} title="Panggil" aria-label="Panggil">
+            ${speakerIcon}
           </button>
         </div>
 
